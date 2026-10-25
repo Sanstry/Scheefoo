@@ -1,0 +1,380 @@
+#include <iostream>
+#include <stdint.h>
+#include <cstdint>
+#include <cmath>
+#include <array>
+#include <cstring>
+#include <iomanip>
+#include <sstream>
+#include <fstream>
+#include <chrono>
+#include <random>
+#include <bitset>   
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <ctime>
+
+using namespace std;
+
+
+std::string hexToBinary(const std::string& hexString) {
+    std::string binaryString;
+    for (char c : hexString) {
+        int hexValue;
+        if (c >= '0' && c <= '9') {
+            hexValue = c - '0';
+        } else if (c >= 'A' && c <= 'F') {
+            hexValue = 10 + (c - 'A');
+        } else if (c >= 'a' && c <= 'f') {
+            hexValue = 10 + (c - 'a');
+        } else {
+            // Invalid character
+            return "";
+        }
+        binaryString += std::bitset<4>(hexValue).to_string();
+    }
+    return binaryString;
+}
+
+std::string binaryToHex(const std::string& binaryString) {
+    // Make sure the length of the binary string is a multiple of 4
+    int padding = binaryString.length() % 4;
+    std::string paddedBinaryString = binaryString;
+    if (padding != 0) {
+        paddedBinaryString = std::string(4 - padding, '0') + paddedBinaryString;
+    }
+
+    std::string hexString;
+    for (size_t i = 0; i < paddedBinaryString.length(); i += 4) {
+        std::string nibble = paddedBinaryString.substr(i, 4); // Get 4-bit substring
+        int decimalValue = std::bitset<4>(nibble).to_ulong(); // Convert binary to decimal
+        char hexChar = (decimalValue < 10) ? ('0' + decimalValue) : ('A' + (decimalValue - 10)); // Convert decimal to hexadecimal character
+        hexString += hexChar;
+    }
+    return hexString;
+}
+
+// Function to apply Rule 105 to update the state of the cellular automaton
+std::bitset<48> applyRule30(const std::bitset<48>& currentState) {
+    // Rule 105 in binary: 01101001
+    std::bitset<8> rule30("00011110");
+    std::bitset<48> nextState;
+
+    for (int i = 0; i < 48; ++i) {
+        // Get the neighborhood configuration for the current cell and update accordingly
+        int leftIndex = (i == 47) ? 0 : i + 1;
+        int rightIndex = (i == 0) ? 47 : i - 1;
+        std::bitset<3> neighborhood((currentState[leftIndex] << 2) | (currentState[i] << 1) | currentState[rightIndex]);
+
+        // Use the rule to determine the next state
+        nextState[i] = rule30[neighborhood.to_ulong()];
+    }
+
+    return nextState;
+}
+
+// Function to apply Rule 105 to update the state of the cellular automaton
+std::bitset<48> applyRule105(const std::bitset<48>& currentState) {
+    // Rule 105 in binary: 01101001
+    std::bitset<8> rule105("01101001");
+    std::bitset<48> nextState;
+
+    for (int i = 0; i < 48; ++i) {
+        // Get the neighborhood configuration for the current cell and update accordingly
+        int leftIndex = (i == 47) ? 0 : i + 1;
+        int rightIndex = (i == 0) ? 47 : i - 1;
+        std::bitset<3> neighborhood((currentState[leftIndex] << 2) | (currentState[i] << 1) | currentState[rightIndex]);
+
+        // Use the rule to determine the next state
+        nextState[i] = rule105[neighborhood.to_ulong()];
+    }
+
+    return nextState;
+}
+
+// Function to apply Rule 105 to update the state of the cellular automaton
+std::bitset<48> applyRule150(const std::bitset<48>& currentState) {
+    // Rule 105 in binary: 01101001
+    std::bitset<8> rule150("10010110");
+    std::bitset<48> nextState;
+
+    for (int i = 0; i < 48; ++i) {
+        // Get the neighborhood configuration for the current cell and update accordingly
+        int leftIndex = (i == 47) ? 0 : i + 1;
+        int rightIndex = (i == 0) ? 47 : i - 1;
+        std::bitset<3> neighborhood((currentState[leftIndex] << 2) | (currentState[i] << 1) | currentState[rightIndex]);
+
+        // Use the rule to determine the next state
+        nextState[i] = rule150[neighborhood.to_ulong()];
+    }
+
+    return nextState;
+}
+
+std::string binaryXOR(const std::string& binary1, const std::string& binary2) {
+    if (binary1.length() != binary2.length()) {
+        std::cerr << "Panjang string biner harus sama." << std::endl;
+        return "";
+    }
+
+    std::string result = "";
+    for (size_t i = 0; i < binary1.length(); i++) {
+        result += (binary1[i] == binary2[i] ? '0' : '1');
+    }
+
+    return result;
+}
+
+vector<string> splitIntoBlocks(const string& binaryString, int blockSize) {
+    string paddedBinaryString = binaryString;
+    const size_t remainder = paddedBinaryString.length() % blockSize;
+    const size_t paddingLength = remainder == 0
+        ? static_cast<size_t>(blockSize)
+        : static_cast<size_t>(blockSize) - remainder;
+    paddedBinaryString += '1';
+    paddedBinaryString.append(paddingLength - 1, '0');
+
+    vector<string> blocks;
+    string currentBlock;
+    // Ambil blok-blok sepanjang blockSize
+    for (size_t i = 0; i < paddedBinaryString.length(); i += blockSize) {
+        currentBlock = paddedBinaryString.substr(i, blockSize);
+        blocks.push_back(currentBlock);
+    }
+
+    return blocks;
+}
+
+// Fungsi untuk melakukan pergeseran bit ke kiri (shift left) pada string biner
+string leftShift(const string& binaryString, int shiftAmount) {
+    // Lakukan pergeseran bit
+    string shiftedString = binaryString.substr(shiftAmount) + binaryString.substr(0, shiftAmount);
+    
+    return shiftedString;
+}
+
+string rightShift(const string& binaryString, int shiftAmount) {
+    // Lakukan pergeseran bit
+    int length = binaryString.length();
+    string shiftedString = binaryString.substr(length - shiftAmount) + binaryString.substr(0, length - shiftAmount);
+    
+    return shiftedString;
+}
+
+// Function to perform modular addition on two bitsets
+std::bitset<48> modAdd(std::bitset<48> a, std::bitset<48> b, std::bitset<48> modulus) {
+    // Perform addition
+    unsigned long long sum = a.to_ullong() + b.to_ullong();
+    // Perform modular operation
+    sum %= modulus.to_ullong();
+    // Convert sum back to bitset
+    return std::bitset<48>(sum);
+}
+
+std::string fungsi_f_ca(std::string input_ca, int index){
+
+    string blok_96;
+    std::vector<std::string> blocks_pesan;
+
+    //Konstanta Neeva
+    std::string constant =  "110001111011000100011001010000000010101111100111"
+                            "011010011001000011000000001011100010010011001111"
+                            "111111110010001000111001000100011111011111110110"
+                            "111101011010011011000010100000100000110010101100"
+                            "000101100001001000010001010111101000001000000001"
+                            "110100101001100110101110001100111101101000011101"
+                            "000111010001100011111110000100011100110101101010"
+                            "010010101111110001011110000100100111011110100111"
+                            "111011001110100010110000110100110011011000011010"
+                            "000111100101110100101011011110111111110010100010"
+                            "100010011010001010100110101000101011101011111000"
+                            "100101101011100101110000100110000001111010111000";
+
+    // 8 Blok XOR
+    blocks_pesan = splitIntoBlocks(input_ca, 8);
+    blocks_pesan[0] = blocks_pesan[0];
+    blocks_pesan[1] = binaryXOR(blocks_pesan[0],blocks_pesan[1]);
+    blocks_pesan[2] = binaryXOR(blocks_pesan[0],blocks_pesan[2]);
+    blocks_pesan[3] = binaryXOR(blocks_pesan[0],blocks_pesan[3]);
+    blocks_pesan[4] = blocks_pesan[4];
+    blocks_pesan[5] = binaryXOR(blocks_pesan[4],blocks_pesan[5]);
+    blocks_pesan[6] = binaryXOR(blocks_pesan[4],blocks_pesan[6]);
+    blocks_pesan[7] = binaryXOR(blocks_pesan[4],blocks_pesan[7]);
+    blocks_pesan[8] = blocks_pesan[8];
+    blocks_pesan[9] = binaryXOR(blocks_pesan[4],blocks_pesan[9]);
+    blocks_pesan[10] = binaryXOR(blocks_pesan[4],blocks_pesan[10]);
+    blocks_pesan[11] = binaryXOR(blocks_pesan[4],blocks_pesan[11]);
+    
+    blok_96 = blocks_pesan[0] + blocks_pesan[1] + blocks_pesan[2] + blocks_pesan[3] + blocks_pesan[4] + blocks_pesan[5] + blocks_pesan[6] + blocks_pesan[7] + blocks_pesan[8] + blocks_pesan[9] + blocks_pesan[10] + blocks_pesan[11];
+    
+    // Geser 32 Bit
+    int shiftAmount = 32; // Jumlah pergeseran
+    blok_96 = leftShift(blok_96, shiftAmount);
+    
+    // Potong 48 Bit
+    std::bitset<48> blok_1(blok_96.substr(0, 48));
+    std::bitset<48> blok_2(blok_96.substr(48, 96));
+
+    // Add Mod CA
+    std::bitset<48> modulus("111111111111111111111111111111111111111111111111"); 
+    blok_1 = modAdd(blok_1, blok_2, modulus);
+
+    // Geser 19
+    std::string blok_2_string = blok_2.to_string();
+    shiftAmount = 19; // Jumlah pergeseran
+    blok_2_string = leftShift(blok_2_string, shiftAmount);
+
+    // XOR Blok 2 dan Blok 1
+    std::bitset<48> blok_2_1(blok_2_string);
+    blok_2_1 = blok_1 ^ blok_2_1;
+
+    // Konstanta
+    const int bitsetSize = 48;
+    const int numBitsets = constant.size() / bitsetSize;
+    std::string bitsetString = constant.substr((index) * bitsetSize, bitsetSize);
+    std::bitset<48> konstanta(bitsetString);
+    blok_1 = modAdd(blok_1, konstanta, modulus);
+
+    // Geser 13 
+    blok_2_string = blok_2_1.to_string();
+    shiftAmount = 23; // Jumlah pergeseran
+    blok_2_string = leftShift(blok_2_string, shiftAmount);
+
+    // XOR Blok 2 dan BLok 1
+    std::bitset<48> blok_2_2(blok_2_string);
+    blok_2_2 = blok_1 ^ blok_2_2;
+
+    // Masuk CA
+    blok_1 = applyRule105(blok_1);
+    blok_1 = applyRule30(blok_1);
+    blok_1 = applyRule150(blok_1);
+
+    blok_2_2 = applyRule105(blok_2_2);
+    blok_2_2 = applyRule30(blok_2_2);
+    blok_2_2 = applyRule150(blok_2_2);
+
+    std::string blok_1_string = blok_1.to_string();
+    blok_2_string = blok_2_2.to_string();
+    std::string output = blok_1_string + blok_2_string;
+
+    // Geser 8 Bit
+    int shiftAkhir = 8; // Jumlah pergeseran
+    output = rightShift(output, shiftAkhir);
+
+    return output;
+}
+
+std::string squeezing(std::string inputstring){
+    std::string output_fungsi;
+    std::string squeez;
+    std::string squeezing;
+
+int panjang_output = 12; // dikali 8 karena setiap 1 proses itu panjangnya 8
+for (int i = 0; i < panjang_output; i++)
+        {
+    for (int j = 0; j < 12; j++)
+        {
+            output_fungsi = fungsi_f_ca(inputstring,j);
+            inputstring = output_fungsi;
+        }
+    squeez = output_fungsi.substr(0, 8); 
+    squeezing.append(squeez);  
+}
+
+    return squeezing;
+}
+
+std::string hashing(std::string inputstring){
+    int blockSize = 96;
+    std::string hasil_hash;
+    std::string output_fungsi;
+    string squeez;
+    std::string r;
+    std::string c;
+    std::string input_coba;
+    std::vector<std::string> blocks_pesan;
+    std::string xoring_string;
+    r = "00000000";
+    c = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    std::string s = r;
+    s.append(c);
+    // input_coba = "0000000";
+    // inputstring = input_coba;
+    // cout << " input coba         : " << inputstring << endl;
+    blocks_pesan = splitIntoBlocks(inputstring, 8); // ukuran r
+
+    std::size_t vectorLength = blocks_pesan.size();
+
+    // Fase Arbsorbing
+    for (int i = 0; i < vectorLength ; i++)
+    {
+        std::bitset<8> r_bitset(r);
+        std::bitset<8> block_pesan(blocks_pesan[i]);
+        // cout << " block pesan : " << blocks_pesan[i] << endl;
+        std::bitset<8> xoring = r_bitset ^ block_pesan;
+        r = xoring.to_string();
+        s = r + c;
+        // cout << " s           : " << s << endl;
+        // cout << " s   : " << s << endl;
+        // cout << " blocks_pesan   : " << blocks_pesan[i] << endl;
+        for (int i = 0; i < 12; i++)
+        {
+            output_fungsi = fungsi_f_ca(s,i);
+        }
+        r = output_fungsi.substr(0, 8);
+        c = output_fungsi.substr(8, 96);
+    }
+    // cout << " c akhir     : " << c << endl;
+    // cout << " output_fung : " << output_fungsi << endl;
+    squeez = squeezing(output_fungsi);
+
+    return squeez;
+}
+
+
+int main()
+{
+    ifstream file1("Input_binary.txt");
+    if (!file1.is_open())
+    {
+        cerr << "Gagal membuka Input_binary.txt" << endl;
+        return 1;
+    }
+
+    // 1. Baca semua baris (baris kosong tetap disimpan)
+    vector<string> inputs;
+    string X;
+    while (getline(file1, X))
+    {
+        if (!X.empty() && X.back() == '\r') X.pop_back(); // file Windows
+        inputs.push_back(X);
+    }
+    file1.close();
+
+    // 2. File 0 byte -> tidak ada baris, anggap sebagai satu input kosong
+    if (inputs.empty())
+        inputs.push_back("");
+
+    // 3. Proses setiap input
+    for (const string& x : inputs)
+    {
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        cout << " X Binary    : " << x << endl;
+        cout << " X Hexa      : " << binaryToHex(x) << endl;
+
+        string Y = hashing(x);
+        cout << " Y Binary    : " << Y << endl;
+        cout << " Output      : " << binaryToHex(Y) << endl;
+
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto dur = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+        cout << "Duration: " << dur << " nanoseconds\n" << endl;
+    }
+
+    return 0;
+}
+         
+
+
